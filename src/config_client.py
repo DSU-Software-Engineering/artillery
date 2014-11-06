@@ -52,9 +52,10 @@ def sendconfig(sock):
     sock.sendall(hashlib.sha512(client_file.read()).hexdigest())
     # rewind file
     client_file.seek(0)
+    # wait for server ready...
+    sock.recv(1024)
     # send file
     sock.sendall(client_file.read())
-    sock.sendall("acm-endoffile")
     client_file.close()
 
 # receive config
@@ -66,7 +67,10 @@ def recvconfig(sock):
     knownhash = sock.recv(1024)
     # get and store file
     tmpfile = open("/var/artillery/config.tmp", "w")
-    while True:
+    # alert server ready
+    sock.sendall("come at me bro")
+    tmp = ""
+    while cursize < totsize:
         tmp = sock.recv(1024)
         tmpfile.write(tmp)
         cursize = tmpfile.tell()

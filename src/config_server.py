@@ -106,6 +106,9 @@ def get_config(connection, dest):
     # get config from client
     fout = open(dest + ".tmp", "w")
     cursize = 0
+    tmp = ""
+    # alert that we're ready to recv the file
+    connection.sendall("letsgobro")
     while cursize < totsize:
         tmp = connection.recv(1024)
         fout.write(tmp)
@@ -115,7 +118,7 @@ def get_config(connection, dest):
     if knownhash == hashlib.sha512(open(dest + ".tmp", "r").read()).hexdigest():
         shutil.move(dest + ".tmp", dest)
     else:
-        os.remove(dest + ".tmp")
+        #os.remove(dest + ".tmp")
         write_log("Artillery Config Manager: ERROR - Invalid config received, discarding")
 
 # send config to client
@@ -128,6 +131,8 @@ def put_config(connection, conffile):
     connection.sendall(hashlib.sha512(cfin.read()).hexdigest())
     # rewind file
     cfin.seek(0)
+    # wait for client ready
+    connection.recv(1024)
     # send file
     connection.sendall(cfin.read())
     cfin.close()

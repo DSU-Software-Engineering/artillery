@@ -13,7 +13,7 @@ def checkin():
     # we're connected, send secret hash
     sock.sendall(hashlib.sha512(read_config("CONFIG_REMOTE_SECRET")).hexdigest())
     # if the socket is still open & we receive OK, continue
-    response = sock.recv(4096)
+    response = sock.recv(1024)
     if (str(response) == "OK"):
         # send our name and hash
         myinfo = socket.gethostname()
@@ -22,7 +22,7 @@ def checkin():
         myinfo += ":" + str(os.path.getmtime("/var/artillery/config"))
         sock.sendall(myinfo)
         # response indicates status on server
-        response = sock.recv(4096)
+        response = sock.recv(1024)
         if (response == "-1"):
             # server out of date or the like
             sendconfig(sock)
@@ -54,19 +54,20 @@ def sendconfig(sock):
     client_file.seek(0)
     # send file
     sock.sendall(client_file.read())
+    sock.sendall("acm-endoffile")
     client_file.close()
 
 # receive config
 def recvconfig(sock):
     # get expected size
-    totsize = int(sock.recv(4096))
+    totsize = int(sock.recv(1024))
     cursize = 0
     # get expected hash
-    knownhash = sock.recv(4096)
+    knownhash = sock.recv(1024)
     # get and store file
     tmpfile = open("/var/artillery/config.tmp", "w")
-    while cursize < totsize:
-        tmp = sock.recv(4096)
+    while True:
+        tmp = sock.recv(1024)
         tmpfile.write(tmp)
         cursize = tmpfile.tell()
     tmpfile.close()

@@ -18,13 +18,13 @@ class SocketListener((SocketServer.BaseRequestHandler)):
         # mark now for logging
         write_log(timenow() + " Artillery Config Manager: Communication Received - " + self.client_address[0])
         # get secret hash from client. Verify
-        clienthash = self.request.recv(4096).rstrip()
+        clienthash = self.request.recv(1024).rstrip()
         serverhash = hashlib.sha512(read_config('CONFIG_REMOTE_SECRET')).hexdigest()
         if (clienthash == serverhash):
             # hopefully this is legit...
             self.request.sendall("OK")
             # get configuration information from client
-            configinfo = self.request.recv(4096)
+            configinfo = self.request.recv(1024)
             splitconfig = split_config_info(configinfo)
             configname = splitconfig[0][splitconfig[0].rfind("/")+1:]
             status = chk_configs(splitconfig)
@@ -100,14 +100,14 @@ def cleanse_config(src):
 # retireve remote config
 def get_config(connection, dest):
     # get expected size from client
-    totsize = int(connection.recv(4096))
+    totsize = int(connection.recv(1024))
     # get known hash from client
-    knownhash = connection.recv(4096)
+    knownhash = connection.recv(1024)
     # get config from client
     fout = open(dest + ".tmp", "w")
     cursize = 0
     while cursize < totsize:
-        tmp = connection.recv(4096)
+        tmp = connection.recv(1024)
         fout.write(tmp)
         cursize = fout.tell()
     fout.close()

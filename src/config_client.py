@@ -9,7 +9,6 @@ from core import *
 def checkin():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (read_config("CONFIG_REMOTE_HOST"), int(read_config("CONFIG_REMOTE_PORT")))
-    print "connecting to ", server_address
     sock.connect(server_address)
     # we're connected, send secret hash
     sock.sendall(hashlib.sha512(read_config("CONFIG_REMOTE_SECRET")).hexdigest())
@@ -17,53 +16,75 @@ def checkin():
     response = sock.recv(4096)
     if (str(response) == "OK"):
         # send our name and hash
-        derpstr = socket.gethostname()
+        myinfo = socket.gethostname()
         hf = open("/var/artillery/config", "r")
-        derpstr += ":" + hashlib.sha512(hf.read()).hexdigest()
-        derpstr += ":" + str(os.path.getmtime("/var/artillery/config"))
-        print derpstr
-        sock.sendall(derpstr)
+        myinfo += ":" + hashlib.sha512(hf.read()).hexdigest()
+        myinfo += ":" + str(os.path.getmtime("/var/artillery/config"))
+        sock.sendall(myinfo)
         # response indicates status on server
         response = sock.recv(4096)
-        # -1 means we need to send our stuff to server
         if (response == "-1"):
-            print "send new to server"
+            # server out of date or the like
             sendconfig(sock)
             recvconfig(sock)
+            write_log(timenow() + " Artillery Config Manager: Sent local config to server. Recevied cleansed version")
         elif (response == "0"):
-            print "Local out of date, recv new"
+            # client out of date or the like
             recvconfig(sock)
+            write_log(timenow() + " Artillery Config Manager: Updated local configuration from server")
         elif (response == "1"):
-            print "All is good, later bro!"
+            # everything is up to date. do nothing
+            write_log(timenow() + " Artillery Config Manager: Local configuration is up to date")
         else:
-            print "Something wrong..."
+            write_log(timenow() + " Artillery Config Manager: ERROR: Invalid status from server...")
     sock.close()
 
+# return current time
+def timenow():
+    return str(datetime.datetime.now())
+
+# send config over socket
 def sendconfig(sock):
     client_file = open("/var/artillery/config", "r")
+    # send expected size
     sock.sendall(str(os.path.getsize("/var/artillery/config")))
+    # send hash of file
+    sock.sendall(hashlib.sha512(client_file.read()).hexdigest())
+    # rewind file
+    client_file.seek(0)
+    # send file
     sock.sendall(client_file.read())
     client_file.close()
 
+# receive config
 def recvconfig(sock):
-    recvstr = ""
+    # get expected size
     totsize = int(sock.recv(4096))
     cursize = 0
+    # get expected hash
     knownhash = sock.recv(4096)
+    # get and store file
     tmpfile = open("/var/artillery/config.tmp", "w")
     while cursize < totsize:
         tmp = sock.recv(4096)
         tmpfile.write(tmp)
         cursize = tmpfile.tell()
-        print "Recv:", cursize, "of", totsize
     tmpfile.close()
+    # compare hash to received file
     tmpfile = open("/var/artillery/config.tmp", "r")
     tmphash = hashlib.sha512(tmpfile.read()).hexdigest()
-    print "tmp:", tmphash, "known:", knownhash
     if (knownhash == tmphash):
         shutil.move("/var/artillery/config.tmp", "/var/artillery/config")
     else:
-        print "ERROR: hashes do not match..."
-    
+        os.remove("/var/artillery/config.tmp")
+        write_log(timenow() + " Artillery Config Manager: invalid hash on received config, discarding config.tmp")
 
-checkin()
+# starts client process
+def runClient():
+    timeout = read_config("CONFIG_FREQUENCY")
+    write_log(timenow() + " Artillery Config Manager: Client process started, checking every " + str(timeout) + " seconds")
+    while True:
+        thread.start_new_thread(checkin, ())
+        time.sleep(int(timeout))
+
+runClient()

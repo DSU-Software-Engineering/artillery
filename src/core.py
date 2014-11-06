@@ -358,7 +358,7 @@ def syslog(message):
             filewrite.write("***** Artillery Alerts Log *****\n")
             filewrite.close()
         filewrite = file("/var/artillery/logs/alerts.log", "a")
-        filewrite.write(alert+"\n")
+        filewrite.write(message+"\n")
         filewrite.close()
 
 def write_log(alert):

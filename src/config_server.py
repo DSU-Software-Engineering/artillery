@@ -20,7 +20,7 @@ class SocketListener((SocketServer.BaseRequestHandler)):
         # get secret from client. Verify
         clientSecret = self.request.recv(1024).rstrip()
         serverSecret = read_config('CONFIG_REMOTE_SECRET')
-        if (clienthash == serverhash):
+        if (clientSecret == serverSecret):
             # hopefully this is legit...
             self.request.sendall("OK")
             # get configuration information from client

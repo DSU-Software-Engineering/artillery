@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 
+#
 # This script checks the server for configuation updates
 #
 import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket
@@ -10,8 +10,8 @@ def checkin():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (read_config("CONFIG_REMOTE_HOST"), int(read_config("CONFIG_REMOTE_PORT")))
     sock.connect(server_address)
-    # we're connected, send secret hash
-    sock.sendall(hashlib.sha512(read_config("CONFIG_REMOTE_SECRET")).hexdigest())
+    # we're connected, send secret
+    sock.sendall(read_config("CONFIG_REMOTE_SECRET"))
     # if the socket is still open & we receive OK, continue
     response = sock.recv(1024)
     if (str(response) == "OK"):

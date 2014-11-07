@@ -17,9 +17,9 @@ class SocketListener((SocketServer.BaseRequestHandler)):
     def setup(self):
         # mark now for logging
         write_log(timenow() + " Artillery Config Manager: Communication Received - " + self.client_address[0])
-        # get secret hash from client. Verify
-        clienthash = self.request.recv(1024).rstrip()
-        serverhash = hashlib.sha512(read_config('CONFIG_REMOTE_SECRET')).hexdigest()
+        # get secret from client. Verify
+        clientSecret = self.request.recv(1024).rstrip()
+        serverSecret = read_config('CONFIG_REMOTE_SECRET')
         if (clienthash == serverhash):
             # hopefully this is legit...
             self.request.sendall("OK")
@@ -43,7 +43,7 @@ class SocketListener((SocketServer.BaseRequestHandler)):
             elif (status == 1):
                 # all is well. files are up to date
                 write_log(timenow() + " Artillery Config Manager: " + configname + " up to date")
-        self.request.close()  
+        self.request.close()
 
 # helper function to get <machinename>:<confighash>:<timestamp>
 def split_config_info(clientinfo):

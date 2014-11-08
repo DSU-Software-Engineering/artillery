@@ -11,6 +11,11 @@ def checkin():
     server_address = (read_config("CONFIG_REMOTE_HOST"), int(read_config("CONFIG_REMOTE_PORT")))
     sock = ssl.wrap_socket(rawsock)
     sock.connect(server_address)
+
+    if verifyThumbprint(sock) == False:
+        sock.close()
+        return
+
     # we're connected, send secret
     sock.sendall(read_config("CONFIG_REMOTE_SECRET"))
     # if the socket is still open & we receive OK, continue
@@ -84,6 +89,21 @@ def recvconfig(sock):
     else:
         os.remove("/var/artillery/config.tmp")
         write_log(timenow() + " Artillery Config Manager: invalid hash on received config, discarding config.tmp")
+
+def verifyThumbprint(socket):
+    rawThumbprint = hashlib.sha1(socket.getpeercert(True)).hexdigest()
+    thumbprint = ':'.join(rawThumbprint[i:i+2] for i in range (0, len(rawThumbprint), 2)).upper()
+
+    if (os.path.isfile("/var/artillery/configServerThumbprint")):
+        knownThumbprint = open("/var/artillery/configServerThumbprint", 'r').read()
+        if (knownThumbprint == thumbprint):
+            return True
+        else:
+            write_log(timenow() + " Artillery Config Manager: invalid server thumbprint " + thumbprint)
+            return False
+    else:
+        open("/var/artillery/configServerThumbprint").write(thumbprint)
+        return True
 
 # starts client process
 def runClient():

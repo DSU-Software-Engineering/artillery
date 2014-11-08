@@ -9,7 +9,7 @@ from core import *
 def checkin():
     rawsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (read_config("CONFIG_REMOTE_HOST"), int(read_config("CONFIG_REMOTE_PORT")))
-	sock = ssl.wrap_socket(rawsock)
+    sock = ssl.wrap_socket(rawsock)
     sock.connect(server_address)
     # we're connected, send secret
     sock.sendall(read_config("CONFIG_REMOTE_SECRET"))

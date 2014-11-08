@@ -2,7 +2,7 @@
 #
 # This script monitors configurations of remote machines and updates them
 #
-import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket
+import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket, ssl
 from SocketServer import TCPServer, ThreadingMixIn, BaseRequestHandler
 from core import *
 
@@ -10,7 +10,23 @@ from core import *
 if not os.path.isdir("/var/artillery/client_configs/"):
     os.makedirs("/var/artillery/client_configs/")
 
-class ClientConfigSocketListener(ThreadingMixIn, TCPServer):
+# generate ssl certificates if they don't exist
+if not os.path.isfile("/var/artillery/pki/server.crt"):
+    if not os.path.isdir("/var/artillery/pki/"):
+        os.makedirs("/var/artillery/pki/")
+    os.system("cd /var/artillery/pki; "
+              "openssl req -new -newkey rsa:2048 -days 1200 -nodes -x509 "
+              " -keyout server.key -out server.crt -sub \"\\\"")
+
+class ClientConfigSocketListener(TCPServer):
+    def get_request(self):
+            sock, addr = self.socket.accept()
+            tlssock = ssl.wrap_socket(sock,
+                                      server_side=True,
+                                      certfile="/var/artillery/pki/server.crt",
+                                      keyfile="/var/artillery/pki/server.key")
+            return tlssock, addr
+
     def handle(self):
         pass
 

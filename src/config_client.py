@@ -2,13 +2,14 @@
 #
 # This script checks the server for configuation updates
 #
-import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket
+import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket, ssl
 from core import *
 
 # this function checks in with the server
 def checkin():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    rawsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (read_config("CONFIG_REMOTE_HOST"), int(read_config("CONFIG_REMOTE_PORT")))
+	sock = ssl.wrap_socket(rawsock)
     sock.connect(server_address)
     # we're connected, send secret
     sock.sendall(read_config("CONFIG_REMOTE_SECRET"))

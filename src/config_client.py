@@ -102,7 +102,7 @@ def verifyThumbprint(socket):
             write_log(timenow() + " Artillery Config Manager: invalid server thumbprint " + thumbprint)
             return False
     else:
-        open("/var/artillery/configServerThumbprint").write(thumbprint)
+        open("/var/artillery/configServerThumbprint", "w").write(thumbprint)
         return True
 
 # starts client process

@@ -77,7 +77,7 @@ def chk_configs(clientinfo):
     configfile = clientinfo[0]
     confighash = clientinfo[1]
     if os.path.isfile(configfile):
-        if confighash == hashlib.sha512(open(configfile, "r").read()).hexdigest():
+        if confighash == hashlib.md5(open(configfile, "r").read()).hexdigest():
             # hashes match, do nothing
             return 1
         else:
@@ -132,7 +132,7 @@ def get_config(connection, dest):
         cursize = fout.tell()
     fout.close()
     # compare files, discard if hashes don't match
-    if knownhash == hashlib.sha512(open(dest + ".tmp", "r").read()).hexdigest():
+    if knownhash == hashlib.md5(open(dest + ".tmp", "r").read()).hexdigest():
         shutil.move(dest + ".tmp", dest)
     else:
         #os.remove(dest + ".tmp")
@@ -145,7 +145,7 @@ def put_config(connection, conffile):
     # send size of file
     connection.sendall(str(os.path.getsize(conffile)))
     # send hash of file
-    connection.sendall(hashlib.sha512(cfin.read()).hexdigest())
+    connection.sendall(hashlib.md5(cfin.read()).hexdigest())
     # rewind file
     cfin.seek(0)
     # wait for client ready

@@ -24,7 +24,7 @@ def checkin():
         # send our name and hash
         myinfo = socket.gethostname()
         hf = open("/var/artillery/config", "r")
-        myinfo += ":" + hashlib.sha512(hf.read()).hexdigest()
+        myinfo += ":" + hashlib.md5(hf.read()).hexdigest()
         myinfo += ":" + str(os.path.getmtime("/var/artillery/config"))
         sock.sendall(myinfo)
         # response indicates status on server
@@ -55,7 +55,7 @@ def sendconfig(sock):
     # send expected size
     sock.sendall(str(os.path.getsize("/var/artillery/config")))
     # send hash of file
-    sock.sendall(hashlib.sha512(client_file.read()).hexdigest())
+    sock.sendall(hashlib.md5(client_file.read()).hexdigest())
     # rewind file
     client_file.seek(0)
     # wait for server ready...
@@ -83,7 +83,7 @@ def recvconfig(sock):
     tmpfile.close()
     # compare hash to received file
     tmpfile = open("/var/artillery/config.tmp", "r")
-    tmphash = hashlib.sha512(tmpfile.read()).hexdigest()
+    tmphash = hashlib.md5(tmpfile.read()).hexdigest()
     if (knownhash == tmphash):
         shutil.move("/var/artillery/config.tmp", "/var/artillery/config")
     else:

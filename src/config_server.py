@@ -3,17 +3,18 @@
 # This script monitors configurations of remote machines and updates them
 #
 import os, hashlib, time, subprocess, thread, datetime, shutil, sys, socket
-import SocketServer
+from SocketServer import TCPServer, ThreadingMixIn, BaseRequestHandler
 from core import *
 
 # check our config directory.
 if not os.path.isdir("/var/artillery/client_configs/"):
     os.makedirs("/var/artillery/client_configs/")
 
-class SocketListener((SocketServer.BaseRequestHandler)):
+class ClientConfigSocketListener(ThreadingMixIn, TCPServer):
     def handle(self):
         pass
 
+class ClientConfigSocketHandler(BaseRequestHandler):
     def setup(self):
         # mark now for logging
         write_log(timenow() + " Artillery Config Manager: Communication Received - " + self.client_address[0])
@@ -138,17 +139,15 @@ def put_config(connection, conffile):
     cfin.close()
 
 # setup thread safe socket server
-def main():
-    if is_config_enabled("CONFIG_SERVER"):
-        try:
-            port = int(read_config("CONFIG_REMOTE_PORT"))
-            interface = read_config("BIND_INTERFACE")
-            if interface == "":
-                server = SocketServer.ThreadingTCPServer(('', port), SocketListener)
-            else:
-                server = SocketServer.ThreadingTCPServer(('%s' % bind_interface, port), SocketListener)
-            server.serve_forever()
-        except Exception,e:
-            write_log(timenow() + " [!]Artillery Config Manager: Unable to start server. Exception: " + str(e))
 
-main()
+if is_config_enabled("CONFIG_SERVER"):
+    try:
+        port = int(read_config("CONFIG_REMOTE_PORT"))
+        interface = read_config("BIND_INTERFACE")
+        if interface == "":
+            server = ClientConfigSocketListener(('0.0.0.0', port), ClientConfigSocketHandler)
+        else:
+            server = ClientConfigSocketListener(('%s' % interface, port), ClientConfigSocketHandler)
+        server.serve_forever()
+    except Exception,e:
+        write_log(timenow() + " [!]Artillery Config Manager: Unable to start server. Exception: " + str(e))

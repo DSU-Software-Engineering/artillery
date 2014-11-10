@@ -16,7 +16,7 @@ if not os.path.isfile("/var/artillery/pki/server.crt"):
         os.makedirs("/var/artillery/pki/")
     os.system("cd /var/artillery/pki; "
               "openssl req -new -newkey rsa:2048 -days 1200 -nodes -x509 "
-              " -keyout server.key -out server.crt -sub \"\\\"")
+              " -keyout server.key -out server.crt -subj \"/\"")
 
 class ClientConfigSocketListener(TCPServer):
     def get_request(self):

@@ -1,4 +1,4 @@
-#############################################################################################
+########################################################################################
 #
 # This is the Artillery configuration file. Change these variables and flags to change how
 # this behaves.
@@ -9,7 +9,7 @@
 # Download: git clone https://github.com/trustedsec/artillery artillery/
 # Install: python setup.py
 #
-#############################################################################################
+############################################################################################
 #
 # DETERMINE IF YOU WANT TO MONITOR OR NOT
 MONITOR=ON
@@ -117,12 +117,33 @@ THREAT_LOCATION="/var/www/"
 ROOT_CHECK=ON
 #
 # Specify SYSLOG TYPE to be local, file or remote. LOCAL will pipe to syslog, REMOTE will pipe to remote SYSLOG, and file will send to alerts.log in local artillery directory
-SYSLOG_TYPE=LOCAL
+SYSLOG_TYPE=FILE
 #
 # IF YOU SPECIFY SYSLOG TYPE TO REMOTE, SPECIFY A REMOTE SYSLOG SERVER TO SEND ALERTS TO
 SYSLOG_REMOTE_HOST="192.168.0.1"
 #
 # TURN ON CONSOLE LOGGING
 CONSOLE_LOGGING=OFF
+#
+# THIS ARTILLERY INSTANCE IS A CONFIGURATION SERVER?
+CONFIG_SERVER=OFF
+#
+# LOCKED CONFIGUATION ITEMS (CONFIG_SERVER_MASTER OVERRIDES CLIENT ON CHECKIN)
+CONFIG_SERVER_DISABLED_ITEMS="CONFIG_REMOTE_HOST"
+#
+# THIS ARTILLERY INSTANCE IS A CONFIGURATION CLIENT? Will override server functionality if enabled
+CONFIG_CLIENT=OFF
+#
+# HOW OFTEN TO CHECK IN WITH SERVER
+CONFIG_FREQUENCY=60
+#
+# ARTILLERY SERVER URL/IP
+CONFIG_REMOTE_HOST=127.0.0.1
+#
+# ARTILLERY SERVER PORT
+CONFIG_REMOTE_PORT=34875
+#
+# ARTILLERY SERVER SECRET
+CONFIG_REMOTE_SECRET=huggoatsforfunandprofit
 #
 #

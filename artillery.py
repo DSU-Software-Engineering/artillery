@@ -49,6 +49,13 @@ try:
     # spawn honeypot
     import src.honeypot
 
+    # check if config client
+    if is_config_enabled("CONFIG_CLIENT"):
+        import src.config_client
+    # only allow server if config_client disabled
+    elif is_config_enabled("CONFIG_SERVER"):
+        import src.config_server
+
     # spawn ssh monitor
     if is_config_enabled("SSH_BRUTE_MONITOR"):
         import src.ssh_monitor

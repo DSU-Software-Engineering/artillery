@@ -42,6 +42,7 @@ def persistant_404(apache_file):
 			if check_whitelist == 0:
 				#ban that ip address************************************---------------------*******************************
 				subject = "%s [!] Artillery has BLOCKED the IP Address: %s" % (now, ip)
+				ban(ip) #sends ip to ban function for banning
 		else:
 			subject = "%s [!] Artillery has detected %s 404 errors from the IP Address: %s" % (now, count, ip)
 			

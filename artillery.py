@@ -73,6 +73,9 @@ try:
 
     # start the email handler
     import src.email_handler
+    
+    # start the apache monitor
+    import src.apache_monitor
 
     # if we are running posix then lets create a new iptables chain
     if is_posix():

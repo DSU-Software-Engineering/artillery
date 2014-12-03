@@ -14,6 +14,7 @@ import os
 import random
 import datetime
 from src.core import *
+from src.protocol_emulate import *
 
 # port ranges to spawn pulled from config
 ports = read_config("PORTS")

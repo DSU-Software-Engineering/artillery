@@ -31,36 +31,44 @@ class SocketListener((SocketServer.BaseRequestHandler)):
         # hehe send random length garbage to the attacker
         length = random.randint(5, 30000)
 
-        # fake_string = random number between 5 and 30,000 then os.urandom the command back
-        fake_string = os.urandom(int(length))
-
-        # try the actual sending and banning
-        try:
-            self.request.send(fake_string)
+        port = self.server.server_address[1]
+        if protocol_check(port):
             ip = self.client_address[0]
             if is_valid_ipv4(ip):
                 check_whitelist = is_whitelisted_ip(ip)
-                # ban the mofos
                 if check_whitelist == 0:
-                    now = str(datetime.datetime.today())
-                    port = self.server.server_address[1]
-                    subject = "%s [!] Artillery has detected an attack from the IP Address: %s" % (now, ip)
-                    alert = ""
-                    if honeypot_ban:
-                        alert = "%s [!] Artillery has blocked (and blacklisted) the IP Address: %s for connecting to a honeypot restricted port: %s" % (now, ip, port)
-                    else:
-                        alert = "%s [!] Artillery has detected an attack from IP address: %s for a connection on a honeypot port: %s" % (now, ip, port)
-                    warn_the_good_guys(subject, alert)
+                    protocol_handler(self)
+        else:
+            # fake_string = random number between 5 and 30,000 then os.urandom the command back
+            fake_string = os.urandom(int(length))
 
-                    # close the socket
-                    self.request.close()
+            # try the actual sending and banning
+            try:
+                self.request.send(fake_string)
+                ip = self.client_address[0]
+                if is_valid_ipv4(ip):
+                    check_whitelist = is_whitelisted_ip(ip)
+                    # ban the mofos
+                    if check_whitelist == 0:
+                        now = str(datetime.datetime.today())
+                        port = self.server.server_address[1]
+                        subject = "%s [!] Artillery has detected an attack from the IP Address: %s" % (now, ip)
+                        alert = ""
+                        if honeypot_ban:
+                            alert = "%s [!] Artillery has blocked (and blacklisted) the IP Address: %s for connecting to a honeypot restricted port: %s" % (now, ip, port)
+                        else:
+                            alert = "%s [!] Artillery has detected an attack from IP address: %s for a connection on a honeypot port: %s" % (now, ip, port)
+                        warn_the_good_guys(subject, alert)
 
-                    # if it isn't whitelisted and we are set to ban
-                    if honeypot_ban:
-                        ban(self.client_address[0])
-        except Exception, e:
-            print "[!] Error detected. Printing: " + str(e)
-            pass
+                        # close the socket
+                        self.request.close()
+
+                        # if it isn't whitelisted and we are set to ban
+                        if honeypot_ban:
+                            ban(self.client_address[0])
+            except Exception, e:
+                print "[!] Error detected. Printing: " + str(e)
+                pass
 
 # here we define a basic server
 def listen_server(port,bind_interface):

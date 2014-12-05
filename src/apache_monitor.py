@@ -90,7 +90,7 @@ def ban_on_404(apache_file):
 
 					# ban pending configuration; email if necessary
 					if bancount:
-						if len(newlist) >= bancount and not notify):
+						if len(newlist) >= bancount and not notify:
 							ban(ip)
 							warn_the_good_guys(subject,"IP address banned forever based on configuration settings. Login to machine and run remove_ban.py <ip> to remove.")
 							notify = 1

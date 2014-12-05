@@ -60,6 +60,12 @@ try:
     if is_config_enabled("SSH_BRUTE_MONITOR"):
         import src.ssh_monitor
 
+    # spawn 404 banner
+    if is_config_enabled("BAN_ON_404"):
+        from src.apache_monitor import BAN_ON_404
+        ban_on_404(read_config("ACCESS_LOG"))
+        thread.start_new_thread(ban_on_404,())
+
     ftp_monitor = read_config("FTP_BRUTE_MONITOR")
     if ftp_monitor.lower() == "on":
         #imprt the ftp monitor

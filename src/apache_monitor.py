@@ -1,6 +1,7 @@
 #127.0.0.1 - - [10/Mar/2012:15:35:53 -0500] "GET /sdfsdfds.dsfds HTTP/1.1" 404 501 "-" "Mozilla/5.0 (X11; Linux i686 on x86_64; rv:10.0.2) Gecko/20100101 Firefox/10.0.2"
-import re
-import datetime
+import re, datetime
+from core import *
+from time import *
 checker = 0
 
 def tail(some_file):
@@ -12,7 +13,8 @@ def tail(some_file):
         line = this_file.readline()
         if line:
             yield line
-        yield None
+        else:
+        	sleep(5)
 		
 def persistant_404(apache_file):
 	# create a record of each time a 404 occurred with each IP
@@ -48,7 +50,52 @@ def persistant_404(apache_file):
 			
 		alert = "Artillery has detected a possible attack from IP address: %s after initiating multiple 404 errors." % (ip)
 		warn_the_good_guys(subject, alert)
-	
+
+def ban_on_404(apache_file):
+	hits = {}
+	# prepare to read logs
+	logfile = tail(apache_file)
+	for line in logfile:
+		# if not line:
+		# 	# if none is generated, wait awhile, there will be more log entries
+		# 	print "waiting...",
+		# 	sleep(5)
+		# 	continue
+		if '404' in line:
+			linevars = line.split()
+			if linevars[8] == '404':
+				ip = linevars[0]
+				if not is_whitelisted_ip(ip):
+					ts = mktime(datetime.datetime.strptime(linevars[3][1:], '%d/%b/%Y:%H:%M:%S').timetuple())
+					if ip in hits:
+						notify, stamps = hits[ip]
+						stamps.append(ts)
+						hits[ip] = (notify,stamps)
+					else:
+						hits[ip] = (0, [ts])
+					print ip, hits[ip] # Debugging only
+					
+					# remove timestamps not in last 24 hours
+					then = time() - 86400
+					newlist = []
+					notify, stamps = hits[ip]
+					for stamp in stamps:
+						if stamp > then:
+							newlist.append(stamp)
+
+					# log
+					now = grab_time()
+					subject = "%s [!] Artillery has detetected a 404 from %s. %s in last 24 hours" % (now,ip,len(newlist))
+					write_log(subject)
+
+					# ban pending configuration; email if necessary
+					if is_config_enabled("NUM_404"):
+						if len(newlist) >= int(read_config("NUM_404") and not notify):
+							ban(ip)
+							warn_the_good_guys(subject,"IP address banned forever based on configuration settings. Login to machine and run remove_ban.py <ip> to remove.")
+							notify = 1
+
+
 # grab the access logs and tail them
 access = "/var/log/apache2/access.log"
 access_log = tail(access)

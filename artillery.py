@@ -62,7 +62,7 @@ try:
 
     # spawn 404 banner
     if is_config_enabled("BAN_ON_404"):
-        from src.apache_monitor import BAN_ON_404
+        from src.apache_monitor import ban_on_404
         ban_on_404(read_config("ACCESS_LOG"))
         thread.start_new_thread(ban_on_404,())
 

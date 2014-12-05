@@ -63,8 +63,7 @@ try:
     # spawn 404 banner
     if is_config_enabled("BAN_ON_404"):
         from src.apache_monitor import ban_on_404
-        ban_on_404(read_config("ACCESS_LOG"))
-        thread.start_new_thread(ban_on_404,())
+        thread.start_new_thread(ban_on_404,(read_config("ACCESS_LOG"),))
 
     ftp_monitor = read_config("FTP_BRUTE_MONITOR")
     if ftp_monitor.lower() == "on":

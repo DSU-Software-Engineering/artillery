@@ -113,4 +113,4 @@ def runClient():
         thread.start_new_thread(checkin, ())
         time.sleep(int(timeout))
 
-runClient()
+thread.start_new_thread(runClient,())

@@ -73,7 +73,6 @@ def ban_on_404(apache_file):
 						hits[ip] = (notify,stamps)
 					else:
 						hits[ip] = (0, [ts])
-					print ip, hits[ip] # Debugging only
 					
 					# remove timestamps not in last 24 hours
 					then = time() - 86400
@@ -94,6 +93,9 @@ def ban_on_404(apache_file):
 							ban(ip)
 							warn_the_good_guys(subject,"IP address banned forever based on configuration settings. Login to machine and run remove_ban.py <ip> to remove.")
 							notify = 1
+
+					# write back
+					hits[ip] = (notify,newlist)
 
 
 # grab the access logs and tail them

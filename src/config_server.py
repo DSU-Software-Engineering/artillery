@@ -32,8 +32,6 @@ class ClientConfigSocketListener(TCPServer):
 
 class ClientConfigSocketHandler(BaseRequestHandler):
     def setup(self):
-        # mark now for logging
-        write_log(timenow() + " Artillery Config Manager: Communication Received - " + self.client_address[0])
         # get secret from client. Verify
         clientSecret = self.request.recv(1024).rstrip()
         serverSecret = read_config('CONFIG_REMOTE_SECRET')
@@ -51,15 +49,15 @@ class ClientConfigSocketHandler(BaseRequestHandler):
                 get_config(self.request, splitconfig[0])
                 cleanse_config(splitconfig[0])
                 put_config(self.request, splitconfig[0])
-                write_log(timenow() + " Artillery Config Manager: " + configname + " updated on server")
+                write_log("[*] %s: Artillery Config Manager: %s updated on server" % (grab_time(),configname))
             elif (status == 0):
                 # client config out of date
                 cleanse_config(splitconfig[0])
                 put_config(self.request, splitconfig[0])
-                write_log(timenow() + " Artillery Config Manager: " + configname + " updated on client")
+                write_log("[*] %s: Artillery Config Manager: %s updated on client" % (grab_time(),configname))
             elif (status == 1):
                 # all is well. files are up to date
-                write_log(timenow() + " Artillery Config Manager: " + configname + " up to date")
+                write_log("[*] %s: Artillery Config Manager: %s up to date" % (grab_time(),configname))
         self.request.close()
 
 # helper function to get <machinename>:<confighash>:<timestamp>
@@ -67,10 +65,6 @@ def split_config_info(clientinfo):
     lconfig = clientinfo.rstrip().split(":")
     lconfig[0] = "/var/artillery/client_configs/" + lconfig[0]
     return lconfig
-
-# helper function to get time string
-def timenow():
-    return str(datetime.datetime.now())
 
 # analyze hash against server copy of config
 def chk_configs(clientinfo):
@@ -136,7 +130,7 @@ def get_config(connection, dest):
         shutil.move(dest + ".tmp", dest)
     else:
         #os.remove(dest + ".tmp")
-        write_log("Artillery Config Manager: ERROR - Invalid config received, discarding")
+        write_log("[!] %s: Artillery Config Manager: ERROR - Invalid config received, discarding" % (grab_time()))
 
 # send config to client
 def put_config(connection, conffile):
@@ -166,4 +160,4 @@ if is_config_enabled("CONFIG_SERVER"):
             server = ClientConfigSocketListener(('%s' % interface, port), ClientConfigSocketHandler)
         server.serve_forever()
     except Exception,e:
-        write_log(timenow() + " [!]Artillery Config Manager: Unable to start server. Exception: " + str(e))
+        write_log("[*] %s: Artillery Config Manager: Unable to start server. Exception: %s" (grab_time(), str(e)))

@@ -33,21 +33,17 @@ def checkin():
             # server out of date or the like
             sendconfig(sock)
             recvconfig(sock)
-            write_log(timenow() + " Artillery Config Manager: Sent local config to server. Recevied cleansed version")
+            write_log("[*] %s: Artillery Config Manager: Sent local config to server. Recevied cleansed version" % (grab_time()))
         elif (response == "0"):
             # client out of date or the like
             recvconfig(sock)
-            write_log(timenow() + " Artillery Config Manager: Updated local configuration from server")
+            write_log("[*] %s: Artillery Config Manager: Updated local configuration from server" % (grab_time()))
         elif (response == "1"):
             # everything is up to date. do nothing
-            write_log(timenow() + " Artillery Config Manager: Local configuration is up to date")
+            write_log("[*] %s: Artillery Config Manager: Local configuration is up to date" % (grab_time()))
         else:
-            write_log(timenow() + " Artillery Config Manager: ERROR: Invalid status from server...")
+            write_log("[!] %s: Artillery Config Manager: Invalid status from server..." % (grab_time()))
     sock.close()
-
-# return current time
-def timenow():
-    return str(datetime.datetime.now())
 
 # send config over socket
 def sendconfig(sock):
@@ -88,7 +84,7 @@ def recvconfig(sock):
         shutil.move("/var/artillery/config.tmp", "/var/artillery/config")
     else:
         os.remove("/var/artillery/config.tmp")
-        write_log(timenow() + " Artillery Config Manager: invalid hash on received config, discarding config.tmp")
+        write_log("[!] %s: Artillery Config Manager: invalid hash on received config, discarding config.tmp" % (grab_time()))
 
 def verifyThumbprint(socket):
     rawThumbprint = hashlib.sha1(socket.getpeercert(True)).hexdigest()
@@ -99,7 +95,7 @@ def verifyThumbprint(socket):
         if (knownThumbprint == thumbprint):
             return True
         else:
-            write_log(timenow() + " Artillery Config Manager: invalid server thumbprint " + thumbprint)
+            write_log("[!] %s: Artillery Config Manager: invalid server thumbprint %s" % (grab_time(), thumbprint))
             return False
     else:
         open("/var/artillery/configServerThumbprint", "w").write(thumbprint)
@@ -108,7 +104,7 @@ def verifyThumbprint(socket):
 # starts client process
 def runClient():
     timeout = read_config("CONFIG_FREQUENCY")
-    write_log(timenow() + " Artillery Config Manager: Client process started, checking every " + str(timeout) + " seconds")
+    write_log("[*] %s: Artillery Config Manager: Client process started, checking every x %s seconds" % (grab_time(), str(timeout)))
     while True:
         thread.start_new_thread(checkin, ())
         time.sleep(int(timeout))
